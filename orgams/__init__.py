@@ -9,6 +9,22 @@ Juego de donación de órganos
 INICIO = True
 TURNO = 1
 RONDA = 1
+TOTAL_RONDAS = 4 # Colocar el numero final de rondas +1
+TIEMPO_CORTO = 1 # En segundos (ListaEspera, ListaEspera, FinRonda)
+TIEMPO_LARGO = 3 # En segundos (Donacion, Priorizacion)
+
+# Funciones de configuraciones globales, tocar para pruebas y producción
+def Total_Rondas():
+    global TOTAL_RONDAS
+    return TOTAL_RONDAS
+
+def Tiempo_corto():
+    global TIEMPO_CORTO 
+    return TIEMPO_CORTO 
+
+def Tiempo_largo():
+    global TIEMPO_LARGO
+    return TIEMPO_LARGO
 
 class C(BaseConstants):
     NAME_IN_URL = 'organ_donation'
@@ -347,7 +363,7 @@ class Instrucciones(Page):
     form_model = 'player'
 
 class Priorizacion(Page):
-    timeout_seconds = 10
+    timeout_seconds = Tiempo_largo()
 
     form_model = 'player'
     form_fields = [
@@ -356,10 +372,13 @@ class Priorizacion(Page):
 
     @staticmethod
     def is_displayed(p: Player):
-        return True if Ronda() == 1 and Inicio() else False
+        return Final(p)
 
 class zFinal(Page):
-    form_model = 'player'
+        
+    @staticmethod
+    def is_displayed(p: Player):
+        return Final(p)
 
 # FUNCIONES
 
@@ -425,6 +444,12 @@ def Inicio():
 def Ronda():
     global RONDA
     return RONDA
+
+# Función para evaluar el final de una ronda
+def Final(p: Player):
+    g = p.group
+    global RONDA
+    return RONDA == Total_Rondas() and Inicio() and g.ronda > 1
 
 # Función para evaluar el estado del juego y tomar decisiones
 def Evaluar(p: Player):
@@ -512,7 +537,7 @@ def EvaluarLista(p: Player):
 # PÁGINAS
 
 class Donacion(Page):
-    timeout_seconds = 20
+    timeout_seconds = Tiempo_largo()
     form_model = 'player'
     form_fields = ['es_donante']
 
@@ -527,7 +552,7 @@ class Donacion(Page):
     def vars_for_template(p: Player):
         image_data = {
         'imagen1': 2,  # El número indica hasta que ronda se mostrá como máximo
-        'imagen2': 4,  # Modificar de acuerdo a las imagenes de la carpeta _static/images y según rondas
+        'imagen2': 20,  # Modificar de acuerdo a las imagenes de la carpeta _static/images y según rondas
         }
 
         for imagen, ronda in image_data.items():
@@ -547,7 +572,7 @@ class Donacion(Page):
         ElegirDonar(p)
 
 class Simulacion(Page):
-    timeout_seconds = 10
+    timeout_seconds = Tiempo_corto()
     
     @staticmethod
     def vars_for_template(p: Player):
@@ -564,7 +589,7 @@ class Simulacion(Page):
         SimularCaso(p)
 
 class ListaEspera(Page):
-    timeout_seconds = 10
+    timeout_seconds = Tiempo_corto()
 
     @staticmethod
     def vars_for_template(p: Player):
@@ -593,24 +618,26 @@ class FinTurno(WaitPage):
         return p.fuera_de_juego
 
 class FinRonda(Page):
+    timeout_seconds = Tiempo_corto()
+
     @staticmethod
     def is_displayed(p: Player):
         Evaluar(p)
-        return Ronda() == 5 # Aquí colocar 20, sino se están haciendo pruebas
+        return Ronda() == Total_Rondas()
 
-    @staticmethod
-    def app_after_this_page(p: Player, upcoming_apps):
-        return upcoming_apps[0]
+    #@staticmethod
+    #def app_after_this_page(p: Player, upcoming_apps):
+    #    return upcoming_apps[0]
 
 page_sequence = [#Demographics, Donacion1, Donacion2,Racismo, 
     #Instrucciones,
-    Priorizacion,
-    #zFinal,
     Donacion,
     Espera,
     Simulacion,
     ListaEspera,
     FinTurno,
     FinRonda,
+    Priorizacion,
+    zFinal,
     Espera
 ]
