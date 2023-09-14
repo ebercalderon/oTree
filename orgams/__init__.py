@@ -10,8 +10,8 @@ INICIO = True
 TURNO = 1
 RONDA = 1
 TOTAL_RONDAS = 4 # Colocar el numero final de rondas +1
-TIEMPO_CORTO = 1 # En segundos (ListaEspera, ListaEspera, FinRonda)
-TIEMPO_LARGO = 3 # En segundos (Donacion, Priorizacion)
+TIEMPO_CORTO = 1 # En segundos (Simulación, ListaEspera, FinRonda)
+TIEMPO_LARGO = 3 # En segundos (Instrucciones, Donacion, Priorizacion)
 
 # Funciones de configuraciones globales, tocar para pruebas y producción
 def Total_Rondas():
@@ -360,7 +360,11 @@ class Racismo(Page):
                    , 'discr_sexo3', 'discr_sexo4']
 
 class Instrucciones(Page):
-    form_model = 'player'
+    timeout_seconds = Tiempo_largo()
+
+    @staticmethod
+    def is_displayed(p: Player):
+        return True if Ronda() == 1 and Inicio() else False
 
 class Priorizacion(Page):
     timeout_seconds = Tiempo_largo()
@@ -630,7 +634,7 @@ class FinRonda(Page):
     #    return upcoming_apps[0]
 
 page_sequence = [#Demographics, Donacion1, Donacion2,Racismo, 
-    #Instrucciones,
+    Instrucciones,
     Donacion,
     Espera,
     Simulacion,
