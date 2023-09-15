@@ -9,9 +9,11 @@ Juego de donación de órganos
 INICIO = True
 TURNO = 1
 RONDA = 1
-TOTAL_RONDAS = 4 # Colocar el numero final de rondas +1
-TIEMPO_CORTO = 1 # En segundos (Simulación, ListaEspera, FinRonda)
-TIEMPO_LARGO = 3 # En segundos (Instrucciones, Donacion, Priorizacion)
+TOTAL_RONDAS = 3 # Colocar el numero final de rondas +1
+TIEMPO_CORTO = 3 # En segundos (Simulación, ListaEspera, FinRonda)
+TIEMPO_LARGO = 5 # En segundos (Instrucciones, Donacion, Priorizacion)
+
+PAGO = []
 
 # Funciones de configuraciones globales, tocar para pruebas y producción
 def Total_Rondas():
@@ -336,28 +338,52 @@ class Player(BasePlayer):
         label='Orden',
         choices=['1', '2', '3', '4']
     )
+
 # FUNCTIONS
 # PAGES
 class Demographics(Page):
+    timeout_seconds = Tiempo_largo()
+
     form_model = 'player'
     form_fields = ['edad', 'genero','ciclo','distrito','carrera','escala','dpto','etnia','colegio','trabajo','hermanos',
                    'padrevivo','madreviva','padre_estudios','madre_estudios','seguro','tiposeguro','religion','religion_frec']
+    @staticmethod
+    def is_displayed(p: Player):
+        return True if Ronda() == 1 and Inicio() else False
 
 
 class Donacion1(Page):
+    timeout_seconds = Tiempo_largo()
+
     form_model = 'player'
     form_fields = ['d_positivo', 'd_oblig', 'd_fam1', 'd_fam2', 'd_donar', 'd_dni', 'd_proc']
 
+    @staticmethod
+    def is_displayed(p: Player):
+        return True if Ronda() == 1 and Inicio() else False
+
 class Donacion2(Page):
+    timeout_seconds = Tiempo_largo()
+
     form_model = 'player'
     form_fields = ['dc_pago', 'dc_fam', 'dc_sexo', 'dc_costo', 'dc_decision', 'dc_req']
 
+    @staticmethod
+    def is_displayed(p: Player):
+        return True if Ronda() == 1 and Inicio() else False
+
 class Racismo(Page):
+    timeout_seconds = Tiempo_largo()
+
     form_model = 'player'
     form_fields = ['discr_gral1', 'discr_gral2', 'discr_gral3', 'discr_gral4', 'discr_gral5', 'discr_razapais1', 'discr_razapais2'
                    , 'discr_razapais3', 'discr_razapais4', 'discr_soceco1', 'discr_soceco2', 'discr_soceco3', 'discr_soceco4', 'discr_soceco5'
                    , 'discr_soceco6', 'discr_soceco7', 'discr_soceco8', 'discr_soceco9', 'discr_soceco10', 'discr_sexo1', 'discr_sexo2'
                    , 'discr_sexo3', 'discr_sexo4']
+    
+    @staticmethod
+    def is_displayed(p: Player):
+        return True if Ronda() == 1 and Inicio() else False
 
 class Instrucciones(Page):
     timeout_seconds = Tiempo_largo()
@@ -385,6 +411,16 @@ class zFinal(Page):
         return Final(p)
 
 # FUNCIONES
+
+# Función para obtener pagos
+def Guardar_Pago(pago):
+    global PAGO
+    PAGO.append(pago)
+
+def Pago_Final():
+    global PAGO
+    return random.choice(PAGO)
+
 
 # Función para imprimir información del jugador
 def log(p: Player, fx):
@@ -471,6 +507,7 @@ def Evaluar(p: Player):
 
     # Verificar si todos los jugadores están fuera del juego
     if all(p.fuera_de_juego for p in g.subsession.get_players()):
+        Guardar_Pago(p.pago)
         ResetearJugador(p)
         g.ronda += 1
         INICIO = True
@@ -628,12 +665,19 @@ class FinRonda(Page):
     def is_displayed(p: Player):
         Evaluar(p)
         return Ronda() == Total_Rondas()
+    
+    @staticmethod
+    def vars_for_template(p: Player):
+        return dict(
+            pago = Pago_Final()
+        )
 
     #@staticmethod
     #def app_after_this_page(p: Player, upcoming_apps):
     #    return upcoming_apps[0]
 
-page_sequence = [#Demographics, Donacion1, Donacion2,Racismo, 
+page_sequence = [
+    Demographics, Donacion1, Donacion2, Racismo, 
     Instrucciones,
     Donacion,
     Espera,

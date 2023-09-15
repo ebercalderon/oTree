@@ -10,7 +10,13 @@
 
   <h3>Estos son los resultados:</h3>  
   <ul>
-  <li>Caso {{ player.caso }}</li>
+  {{ if player.caso == 'A'}}
+    <h2>Caso AAAAA</h2> 
+  {{ elif player.caso == 'B'}}
+    <h2>Caso BBBBB</h2> 
+  {{ else }}
+    <h2>Caso CCCCC</h2> 
+  {{ endif }}
   <li>Organo A: {{ if player.organo_a_funcional }} Funcional {{ else }}Fallo{{ endif }}</li>
   <li>Organo B: {{ if player.organo_b_funcional }} Funcional {{ else }}Fallo{{ endif }}</li>
   <li>Turnos en lista de espera: {{ player.turnos_en_espera }}</li>
