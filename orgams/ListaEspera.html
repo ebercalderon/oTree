@@ -6,16 +6,40 @@
 
 {{ block content }}
 
-  <h2>TE ENCUENTRAS EN LA LISTA DE ESPERA DE DONACIÓN DE ÓRGANOS</h2>  
-  <ul>
-  <li>Total de donaciones disponibles: {{ player.group.donaciones }}</li>  
-  <li>Organo A: {{ if player.organo_a_funcional }} Funcional {{ else }} Fallo {{ endif }}</li>
-  <li>Organo B: {{ if player.organo_b_funcional }} Funcional {{ else }} Fallo {{ endif }}</li>
-  <li>Turnos en lista de espera: {{player.turnos_en_espera}}</li>
-</ul>
-  <p>Por favor, espera un momento mientras los demás jugadores toman sus decisiones.</p>
+  {{ if espera < 5 }}
+    <h2>TE ENCUENTRAS EN LA LISTA DE ESPERA DE DONACIÓN DE ÓRGANOS</h2>  
+    <ul>
+    <li>Total de donaciones disponibles: {{ player.group.donaciones }}</li>  
+    <li>Organo A: {{ if player.organo_a_funcional }} Funcional {{ else }} Fallo {{ endif }}</li>
+    <li>Organo B: {{ if player.organo_b_funcional }} Funcional {{ else }} Fallo {{ endif }}</li>
+    <li>Turnos en lista de espera: {{player.turnos_en_espera}}</li>
+    </ul>
+    <p>Por favor, espera un momento mientras los demás jugadores toman sus decisiones.</p>
+  {{ else }}
+    <h3>Estos son los resultados:</h3>  
+    <ul>
+    {{ if player.caso == 'A'}}
+      <h2>Caso AAAAA</h2> 
+    {{ elif player.caso == 'B'}}
+      <h2>Caso BBBBB</h2> 
+    {{ else }}
+      <h2>Caso CCCCC</h2> 
+    {{ endif }}
+    <li>Organo A: {{ if player.organo_a_funcional }} Funcional {{ else }}Fallo{{ endif }}</li>
+    <li>Organo B: {{ if player.organo_b_funcional }} Funcional {{ else }}Fallo{{ endif }}</li>
+    <li>Turnos en lista de espera: {{ player.turnos_en_espera }}</li>
+    <li>Recibió donación: {{ if player.donacion_previa }} Sí {{ else }} No {{ endif }}</li>
+    <li>El pago obtenido en esta ronda es: {{ player.pago }}</li>
 
-  
+    <li>Causa muerte: 
+      {{ if not player.organo_a_funcional }} Muerte instantánea por fallo en el órgano A
+      {{ elif player.donacion_previa }} Ya no puede recibir más donaciones
+      {{ elif player.turnos_en_espera }} No recibió donación a tiempo
+      {{ endif }}
+    </li>
+  </ul>
+  {{ endif }}
+
   {{ next_button }}
 
 {{ endblock }}

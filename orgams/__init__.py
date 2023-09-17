@@ -1,4 +1,5 @@
 import random
+import time
 from otree.api import *
 
 doc = """
@@ -10,7 +11,7 @@ INICIO = True
 TURNO = 1
 RONDA = 1
 TOTAL_RONDAS = 3 # Colocar el numero final de rondas +1
-TIEMPO_CORTO = 3 # En segundos (Simulación, ListaEspera, FinRonda)
+TIEMPO_CORTO = 1 # En segundos (Simulación, ListaEspera, FinRonda)
 TIEMPO_LARGO = 5 # En segundos (Instrucciones, Donacion, Priorizacion)
 
 PAGO = []
@@ -54,6 +55,7 @@ class Player(BasePlayer):
     fuera_de_juego = models.BooleanField(initial=False)
     fin_turno = models.BooleanField(initial=False)
     pago = models.FloatField(initial=0.0)
+    pago_final = models.FloatField(initial=0.0)
 
 #Socioecon
     edad = models.IntegerField(label='Edad:', min=13, max=125)
@@ -635,7 +637,8 @@ class ListaEspera(Page):
     @staticmethod
     def vars_for_template(p: Player):
         return dict(
-            ronda = Ronda()
+            ronda = Ronda(),
+            espera = p.turnos_en_espera
         )
 
     @staticmethod
@@ -663,11 +666,15 @@ class FinRonda(Page):
 
     @staticmethod
     def is_displayed(p: Player):
+        g = p.group
+        if all(p.fuera_de_juego for p in g.subsession.get_players()):
+            time.sleep(3)
         Evaluar(p)
         return Ronda() == Total_Rondas()
     
     @staticmethod
     def vars_for_template(p: Player):
+        p.pago_final = Pago_Final()
         return dict(
             pago = Pago_Final()
         )
@@ -677,7 +684,7 @@ class FinRonda(Page):
     #    return upcoming_apps[0]
 
 page_sequence = [
-    Demographics, Donacion1, Donacion2, Racismo, 
+    #Demographics, Donacion1, Donacion2, Racismo, 
     Instrucciones,
     Donacion,
     Espera,
