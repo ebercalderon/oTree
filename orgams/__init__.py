@@ -10,11 +10,11 @@ Juego de donación de órganos
 INICIO = True
 TURNO = 1
 RONDA = 1
-TOTAL_RONDAS = 3 # Colocar el numero final de rondas +1
+TOTAL_RONDAS = 5 # Colocar el numero final de rondas +1
 TIEMPO_CORTO = 1 # En segundos (Simulación, ListaEspera, FinRonda)
 TIEMPO_LARGO = 5 # En segundos (Instrucciones, Donacion, Priorizacion)
 
-PAGO = []
+PAGO = [[0] * 25 for _ in range(25)]
 
 # Funciones de configuraciones globales, tocar para pruebas y producción
 def Total_Rondas():
@@ -415,13 +415,15 @@ class zFinal(Page):
 # FUNCIONES
 
 # Función para obtener pagos
-def Guardar_Pago(pago):
-    global PAGO
-    PAGO.append(pago)
+def Guardar_Pago(p: Player):
+    global PAGO, RONDA
+    PAGO[p.id_in_group][RONDA - 1] = p.pago
 
-def Pago_Final():
-    global PAGO
-    return random.choice(PAGO)
+def Pago_Final(p: Player):
+    global PAGO, RONDA
+    fila = PAGO[p.id_in_group][:RONDA - 1]
+    print("Pago player {}: {}".format(p.id_in_group, fila))
+    return random.choice(fila)
 
 
 # Función para imprimir información del jugador
@@ -509,7 +511,6 @@ def Evaluar(p: Player):
 
     # Verificar si todos los jugadores están fuera del juego
     if all(p.fuera_de_juego for p in g.subsession.get_players()):
-        Guardar_Pago(p.pago)
         ResetearJugador(p)
         g.ronda += 1
         INICIO = True
@@ -554,8 +555,12 @@ def SimularCaso(p: Player):
         #p.organo_b_funcional = True
         p.pago += 3.0  # Se incrementa el pago del jugador en 3.0 unidades
 
+    if (p.fuera_de_juego):
+        Guardar_Pago(p)
 
-    
+    #if p.group.turno >= 20:
+    #    p.fuera_de_juego = True  # El jugador queda fuera del juego
+
     log(p, "SimularCaso")
 
 # Función para evaluar la lista de espera del jugador
@@ -574,7 +579,8 @@ def EvaluarLista(p: Player):
     
     p.turnos_en_espera += 1  # Incrementar el contador de turnos en espera del jugador
 
-
+    if (p.fuera_de_juego):
+        Guardar_Pago(p)
     log(p, "EvaluarLista")
 
 # PÁGINAS
@@ -674,9 +680,9 @@ class FinRonda(Page):
     
     @staticmethod
     def vars_for_template(p: Player):
-        p.pago_final = Pago_Final()
+        p.pago_final = p.payoff = Pago_Final(p)
         return dict(
-            pago = Pago_Final()
+            pago = p.pago_final
         )
 
     #@staticmethod
