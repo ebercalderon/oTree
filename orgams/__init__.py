@@ -344,7 +344,7 @@ class Player(BasePlayer):
 # FUNCTIONS
 # PAGES
 class Demographics(Page):
-    timeout_seconds = Tiempo_largo()
+    #timeout_seconds = Tiempo_largo()
 
     form_model = 'player'
     form_fields = ['edad', 'genero','ciclo','distrito','carrera','escala','dpto','etnia','colegio','trabajo','hermanos',
@@ -355,7 +355,7 @@ class Demographics(Page):
 
 
 class Donacion1(Page):
-    timeout_seconds = Tiempo_largo()
+    #timeout_seconds = Tiempo_largo()
 
     form_model = 'player'
     form_fields = ['d_positivo', 'd_oblig', 'd_fam1', 'd_fam2', 'd_donar', 'd_dni', 'd_proc']
@@ -365,7 +365,7 @@ class Donacion1(Page):
         return True if Ronda() == 1 and Inicio() else False
 
 class Donacion2(Page):
-    timeout_seconds = Tiempo_largo()
+    #timeout_seconds = Tiempo_largo()
 
     form_model = 'player'
     form_fields = ['dc_pago', 'dc_fam', 'dc_sexo', 'dc_costo', 'dc_decision', 'dc_req']
@@ -375,7 +375,7 @@ class Donacion2(Page):
         return True if Ronda() == 1 and Inicio() else False
 
 class Racismo(Page):
-    timeout_seconds = Tiempo_largo()
+    #timeout_seconds = Tiempo_largo()
 
     form_model = 'player'
     form_fields = ['discr_gral1', 'discr_gral2', 'discr_gral3', 'discr_gral4', 'discr_gral5', 'discr_razapais1', 'discr_razapais2'
@@ -388,7 +388,7 @@ class Racismo(Page):
         return True if Ronda() == 1 and Inicio() else False
 
 class Instrucciones(Page):
-    timeout_seconds = Tiempo_largo()
+    #timeout_seconds = Tiempo_largo()
 
     @staticmethod
     def is_displayed(p: Player):
@@ -655,6 +655,11 @@ class ListaEspera(Page):
     def before_next_page(p: Player, timeout_happened):
         EvaluarLista(p)
 
+class EsperaJuego(WaitPage):
+    @staticmethod
+    def is_displayed(p: Player):
+        return True if Ronda() == 1 and Inicio() else False
+
 class Espera(WaitPage):
     @staticmethod
     def is_displayed(p: Player):
@@ -690,8 +695,8 @@ class FinRonda(Page):
     #    return upcoming_apps[0]
 
 page_sequence = [
-    #Demographics, Donacion1, Donacion2, Racismo, 
-    Instrucciones,
+    Demographics, Donacion1, Donacion2, Racismo, Instrucciones,
+    EsperaJuego, # Para evitar intervalos de tiempos diferentes entre usuarios
     Donacion,
     Espera,
     Simulacion,
